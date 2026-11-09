@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>东方财富 · 全球行情监测台</title>
+<meta name="description" content="EastMoney global market monitor: indices, equities, FX, futures, bonds, funds and sectors in one terminal." />
+<link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+<link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+<header class="topbar">
+  <div class="brand">
+    <svg class="mark" viewBox="0 0 32 32" aria-hidden="true">
+      <path d="M4 24 L11 15 L16 19 L22 9 L28 12" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+      <circle cx="28" cy="12" r="2.6" fill="currentColor"/>
+    </svg>
+    <div class="brand-text">
+      <strong>全球行情监测台</strong>
+      <span>EASTMONEY · QUOTE CENTER</span>
+    </div>
+  </div>
+
+  <div class="gsearch" id="gsearchWrap">
+    <svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="8.6" cy="8.6" r="5.4" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M12.8 12.8 16.5 16.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+    <input id="gsearchInput" type="search" placeholder="搜索任意股票 / 代码 / 名称   ( / )" autocomplete="off" spellcheck="false" aria-label="全局搜索" />
+    <kbd>/</kbd>
+    <div class="gsearch-results" id="gsearchResults" hidden></div>
+  </div>
+
+  <div class="status-strip" id="statusStrip">
+    <div class="pulse" id="livePulse" title="数据流状态"><i></i><span id="liveLabel">连接中</span></div>
+    <div class="stat"><label>更新</label><b id="lastUpdate">—</b></div>
+    <div class="stat"><label>品种</label><b id="instrumentCount">—</b></div>
+    <div class="stat"><label>代理池</label><b id="proxyCount">—</b></div>
+    <div class="stat"><label>时钟</label><b id="clock">—</b></div>
+  </div>
+
+  <div class="actions">
+    <button class="btn ghost" id="refreshBtn" title="立即刷新全部行情 (R)">
+      <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M16.5 10a6.5 6.5 0 1 1-1.9-4.6M16.5 3v4h-4" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      刷新
+    </button>
+    <button class="btn ghost icon-only" id="themeBtn" title="切换对比度" aria-label="切换对比度">
+      <svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="6.2" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M10 3.8v12.4a6.2 6.2 0 0 0 0-12.4z" fill="currentColor"/></svg>
+    </button>
+  </div>
+</header>
+
+<div class="shell">
+  <aside class="rail" id="rail">
+    <div class="rail-head">
+      <span>市场分类</span>
+      <button class="link-btn" id="expandAll">全部展开</button>
+    </div>
+    <nav id="marketNav" class="market-nav" aria-label="市场分类"></nav>
+    <div class="rail-foot">
+      <div class="mini" id="railFoot">—</div>
+    </div>
+  </aside>
+
+  <main class="main">
+    <section class="tape-wrap panel">
+      <div class="panel-head">
+        <div class="panel-title"><span class="dot cyan"></span>全球指数快照</div>
+        <div class="panel-sub" id="tapeSub">—</div>
+      </div>
+      <div class="tape" id="tape"></div>
+    </section>
+
+    <div class="mid-grid">
+      <section class="panel heat-panel">
+        <div class="panel-head">
+          <div class="panel-title"><span class="dot amber"></span>板块热度</div>
+          <div class="panel-sub">按分类聚合 · 平均涨跌幅</div>
+        </div>
+        <div class="heat-grid" id="heatGrid"></div>
+      </section>
+      <section class="panel movers-panel">
+        <div class="panel-head">
+          <div class="panel-title"><span class="dot red"></span>异动榜</div>
+          <div class="tabs" id="moverTabs" role="tablist">
+            <button class="tab active" data-tab="gainers" role="tab">领涨</button>
+            <button class="tab" data-tab="losers" role="tab">领跌</button>
+            <button class="tab" data-tab="active" role="tab">成交</button>
+          </div>
+        </div>
+        <ol class="movers" id="movers"></ol>
+      </section>
+    </div>
+
+    <section class="panel signals-panel">
+      <div class="panel-head">
+        <div class="panel-title"><span class="dot cyan"></span>T+1 情报
+          <span class="panel-sub" id="signalsDay">—</span>
+        </div>
+        <div class="tabs signals-tabs" id="signalTabs" role="tablist"></div>
+      </div>
+      <div class="signal-scroll">
+        <table class="grid signals-grid">
+          <thead id="signalHead"></thead>
+          <tbody id="signalBody"><tr><td class="empty">加载中…</td></tr></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="panel intel-panel">
+      <div class="panel-head">
+        <div class="panel-title"><span class="dot amber"></span>资讯全文
+          <span class="panel-sub" id="intelMeta">—</span>
+        </div>
+        <div class="tabs intel-tabs" id="intelTabs" role="tablist"></div>
+      </div>
+      <div class="intel-list" id="intelList"><div class="empty">加载中…</div></div>
+    </section>
+
+    <section class="panel table-panel">
+      <div class="panel-head table-head">
+        <div class="table-ident">
+          <h1 id="marketTitle">沪深京A股</h1>
+          <span class="chip" id="marketChip">—</span>
+          <span class="muted" id="marketMeta">—</span>
+        </div>
+        <div class="table-tools">
+          <div class="search">
+            <svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="8.6" cy="8.6" r="5.4" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M12.8 12.8 16.5 16.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+            <input id="searchInput" type="search" placeholder="表内筛选代码 / 名称" autocomplete="off" spellcheck="false" />
+          </div>
+          <select id="pageSize" class="select" aria-label="每页行数">
+            <option value="30">30 行</option>
+            <option value="50" selected>50 行</option>
+            <option value="100">100 行</option>
+          </select>
+          <a class="btn ghost" id="exportBtn" href="#" download>导出 CSV</a>
+        </div>
+      </div>
+
+      <div class="stat-row" id="statRow"></div>
+
+      <div class="table-scroll">
+        <table class="grid" id="quoteTable">
+          <thead>
+            <tr>
+              <th class="col-idx">#</th>
+              <th data-sort="code" class="sortable">代码</th>
+              <th data-sort="name" class="sortable">名称</th>
+              <th data-sort="price" class="sortable num">最新价</th>
+              <th data-sort="pct" class="sortable num active">涨跌幅</th>
+              <th data-sort="chg" class="sortable num">涨跌额</th>
+              <th data-sort="amount" class="sortable num">成交额</th>
+              <th data-sort="turnover" class="sortable num">换手率</th>
+              <th data-sort="mcap" class="sortable num">总市值</th>
+              <th class="num">振幅</th>
+            </tr>
+          </thead>
+          <tbody id="quoteBody">
+            <tr><td colspan="10" class="empty">加载中…</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="pager">
+        <div class="pager-info" id="pagerInfo">—</div>
+        <div class="pager-controls">
+          <button class="btn ghost" id="prevPage" aria-label="上一页">上一页</button>
+          <span id="pageLabel">1 / 1</span>
+          <button class="btn ghost" id="nextPage" aria-label="下一页">下一页</button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <aside class="side" id="side">
+    <section class="panel side-panel">
+      <div class="panel-head"><div class="panel-title"><span class="dot cyan"></span>系统状态</div></div>
+      <div class="sys" id="sysPanel">—</div>
+    </section>
+
+    <section class="panel side-panel grow">
+      <div class="panel-head"><div class="panel-title"><span class="dot amber"></span>采集活动</div></div>
+      <ol class="feed" id="feed"></ol>
+    </section>
+  </aside>
+</div>
+
+<!-- single-instrument terminal -->
+<div class="drawer-scrim" id="drawerScrim" hidden></div>
+<aside class="drawer" id="drawer" role="dialog" aria-modal="true" aria-labelledby="drawerName" hidden>
+  <header class="drawer-head">
+    <div class="dh-id">
+      <h2 id="drawerName">—</h2>
+      <span class="dh-code" id="drawerCode">—</span>
+      <span class="chip" id="drawerBadge">—</span>
+    </div>
+    <div class="dh-actions">
+      <button class="btn ghost" id="watchBtn" title="加入自选 (W)">
+        <svg viewBox="0 0 20 20" aria-hidden="true"><path id="watchStar" d="M10 2.6l2.3 4.7 5.2.8-3.8 3.6.9 5.1-4.6-2.4-4.6 2.4.9-5.1L2.5 8.1l5.2-.8z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>
+        <span id="watchLabel">自选</span>
+      </button>
+      <button class="btn ghost icon-only" id="drawerClose" aria-label="关闭 (Esc)">
+        <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M5 5l10 10M15 5L5 15" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
+      </button>
+    </div>
+  </header>
+
+  <div class="drawer-price">
+    <div class="dp-main">
+      <span class="dp-last" id="dpLast">—</span>
+      <span class="dp-chg" id="dpChg">—</span>
+      <span class="dp-pct" id="dpPct">—</span>
+    </div>
+    <div class="dp-sub" id="dpSub">—</div>
+  </div>
+
+  <div class="drawer-grid">
+    <section class="dpanel dpanel-chart">
+      <div class="dpanel-head">
+        <div class="tabs" id="chartTabs" role="tablist">
+          <button class="tab active" data-klt="trend">分时</button>
+          <button class="tab" data-klt="101">日K</button>
+          <button class="tab" data-klt="102">周K</button>
+          <button class="tab" data-klt="103">月K</button>
+        </div>
+        <div class="dpanel-sub" id="chartSub">—</div>
+      </div>
+      <div class="chart-box" id="chartBox"></div>
+    </section>
+
+    <section class="dpanel dpanel-depth">
+      <div class="dpanel-head"><span class="dpanel-title">五档盘口</span><span class="dpanel-sub" id="depthSub">—</span></div>
+      <div class="ladder" id="ladder">—</div>
+    </section>
+
+    <section class="dpanel dpanel-metrics">
+      <div class="dpanel-head"><span class="dpanel-title">关键指标</span></div>
+      <dl class="metrics" id="metrics"></dl>
+    </section>
+
+    <section class="dpanel dpanel-flow">
+      <div class="dpanel-head">
+        <span class="dpanel-title">资金流向</span>
+        <div class="tabs" id="flowTabs" role="tablist">
+          <button class="tab active" data-flow="intraday">分时</button>
+          <button class="tab" data-flow="daily">近20日</button>
+        </div>
+      </div>
+      <div class="chart-box flow-box" id="flowBox"></div>
+    </section>
+
+    <section class="dpanel dpanel-trades">
+      <div class="dpanel-head"><span class="dpanel-title">逐笔成交</span><span class="dpanel-sub" id="tradesSub">—</span></div>
+      <ol class="trades" id="trades"></ol>
+    </section>
+
+    <section class="dpanel dpanel-signals">
+      <div class="dpanel-head"><span class="dpanel-title">情报信号</span><span class="dpanel-sub" id="stockSignalSub">—</span></div>
+      <ol class="signal-list" id="stockSignals"></ol>
+    </section>
+  </div>
+</aside>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<div class="reader-scrim" id="readerScrim" hidden></div>
+<article class="reader" id="reader" role="dialog" aria-modal="true" aria-labelledby="readerTitle" hidden>
+  <header class="reader-head">
+    <div>
+      <span class="chip" id="readerSection">—</span>
+      <span class="muted" id="readerMeta">—</span>
+    </div>
+    <button class="btn ghost icon-only" id="readerClose" aria-label="关闭 (Esc)">
+      <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M5 5l10 10M15 5L5 15" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
+    </button>
+  </header>
+  <h1 class="reader-title" id="readerTitle">—</h1>
+  <div class="reader-body" id="readerBody"></div>
+  <footer class="reader-foot">
+    <a class="link-btn" id="readerSource" href="#" target="_blank" rel="noreferrer">查看原文 ↗</a>
+    <span class="muted" id="readerStats"></span>
+  </footer>
+</article>
+
+<script src="/app.js"></script>
+</body>
+</html>

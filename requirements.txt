@@ -1,0 +1,7 @@
+# The platform runs on the Python standard library alone.
+# This one package is needed on Windows because CPython ships without the IANA
+# timezone database, which the trading calendars depend on:
+tzdata>=2024.1
+
+# Optional, development only: stack dumps / profiling of the running service.
+# py-spy>=0.3.14
