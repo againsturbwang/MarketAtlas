@@ -1,4 +1,4 @@
-# Global Market Terminal · 全球行情监测台
+# MarketAtlas — Global Financial Market Intelligence Platform
 
 A self-hosted market monitor for EastMoney: 48 markets across 10 regions, a
 single-stock terminal, a T+1 intelligence layer, and an evidence protocol an LLM
@@ -75,8 +75,8 @@ duplicated rather than all four calls.
 Requires Python 3.11+ (3.13 tested) on Windows, Linux or macOS.
 
 ```bash
-git clone <your-repo-url> eastmoney-monitor
-cd eastmoney-monitor
+git clone https://github.com/againsturbwang/MarketAtlas.git
+cd MarketAtlas
 
 python -m venv .venv
 source .venv/bin/activate          # Windows: .venv\Scripts\activate
